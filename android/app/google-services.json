@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1055807655237",
+    "project_id": "elecxa-8e427",
+    "storage_bucket": "elecxa-8e427.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1055807655237:android:8e6b1f57f3485240ed822c",
+        "android_client_info": {
+          "package_name": "com.thewhitehats.elecxa"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCOPrNMzQn5yGc2ov3kIfB0SYOIvohf7DA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
