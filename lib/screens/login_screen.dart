@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'signup_screen.dart'; // Import the SignUpScreen
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   final String role; // 'customer' or 'storeOwner'
@@ -148,6 +149,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _navigateToDetailsOrDashboard(User? user) async {
     if (user != null) {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('user_role', widget.role);
+
       final userDoc = await FirebaseFirestore.instance
           .collection(widget.role == 'customer' ? 'customers' : 'storeOwners')
           .doc(user.uid)

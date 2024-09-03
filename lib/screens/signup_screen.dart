@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SignUpScreen extends StatefulWidget {
   final String role; // 'customer' or 'storeOwner'
@@ -87,6 +88,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   void _navigateToDetailsOrDashboard(User? user) async {
     if (user != null) {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('user_role', widget.role);
+
       final userDoc = await FirebaseFirestore.instance
           .collection(widget.role == 'customer' ? 'customers' : 'storeOwners')
           .doc(user.uid)
