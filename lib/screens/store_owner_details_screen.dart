@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import 'store_location_picker_screen.dart'; // Import the location picker screen
 
 class StoreOwnerDetailsScreen extends StatefulWidget {
   @override
@@ -21,7 +23,7 @@ class _StoreOwnerDetailsScreenState extends State<StoreOwnerDetailsScreen> {
   final _phoneNumberController = TextEditingController();
   final _storeNameController = TextEditingController();
   List<String> _storeTypes = [];
-  final _storeLocationController = TextEditingController();
+  LatLng? _storeLocation; // Store location as LatLng
   Map<String, Map<String, String>> _storeHours = {};
   final _websiteController = TextEditingController();
   final _storeDescriptionController = TextEditingController();
@@ -72,7 +74,18 @@ class _StoreOwnerDetailsScreenState extends State<StoreOwnerDetailsScreen> {
     }
   }
 
-  // Inside the _saveStoreOwnerDetails() method:
+  void _pickStoreLocation() async {
+    final LatLng? selectedLocation = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => StoreLocationPickerScreen()),
+    );
+    if (selectedLocation != null) {
+      setState(() {
+        _storeLocation = selectedLocation;
+      });
+    }
+  }
+
   void _saveStoreOwnerDetails() async {
     try {
       User? user = _auth.currentUser;
@@ -93,9 +106,12 @@ class _StoreOwnerDetailsScreenState extends State<StoreOwnerDetailsScreen> {
           'phoneNumber': _phoneNumberController.text.trim(),
           'email': user.email,
           'storeName': _storeNameController.text.trim(),
-          'storeType': _storeTypes, // Save selected store types as a list
-          'storeLocation': _storeLocationController.text.trim(),
-          'storeHours': _storeHours, // Save store hours as a map
+          'storeType': _storeTypes,
+          'storeLocation': {
+            'latitude': _storeLocation?.latitude,
+            'longitude': _storeLocation?.longitude,
+          },
+          'storeHours': _storeHours,
           'website': _websiteController.text.trim(),
           'storeDescription': _storeDescriptionController.text.trim(),
           'profileImageUrl': imageUrl,
@@ -156,10 +172,13 @@ class _StoreOwnerDetailsScreenState extends State<StoreOwnerDetailsScreen> {
                 controller: _storeNameController,
                 decoration: InputDecoration(labelText: 'Store Name'),
               ),
-              TextField(
-                controller: _storeLocationController,
-                decoration: InputDecoration(labelText: 'Store Location'),
+              TextButton(
+                onPressed: _pickStoreLocation,
+                child: Text('Select Store Location'),
               ),
+              Text(_storeLocation == null
+                  ? 'No location selected'
+                  : 'Location selected: (${_storeLocation!.latitude}, ${_storeLocation!.longitude})'),
               SizedBox(height: 20),
               TextButton(
                 onPressed: _selectStoreType,
@@ -281,7 +300,6 @@ class _StoreHoursDialogState extends State<StoreHoursDialog> {
   void initState() {
     super.initState();
     _storeHours = Map.from(widget.currentStoreHours);
-    // Remove already selected days from available days
     _storeHours.keys.forEach((day) {
       _availableDays.remove(day);
     });
@@ -290,12 +308,9 @@ class _StoreHoursDialogState extends State<StoreHoursDialog> {
   void _addStoreHour() {
     if (_availableDays.isNotEmpty) {
       setState(() {
-        String newDay = _availableDays.first; // Pick the first available day
-        _storeHours[newDay] = {
-          'start': '09:00 AM',
-          'end': '05:00 PM',
-        };
-        _availableDays.remove(newDay); // Remove from available days
+        String newDay = _availableDays.first;
+        _storeHours[newDay] = {'start': '09:00 AM', 'end': '05:00 PM'};
+        _availableDays.remove(newDay);
       });
     }
   }
@@ -303,8 +318,8 @@ class _StoreHoursDialogState extends State<StoreHoursDialog> {
   void _removeStoreHour(String day) {
     setState(() {
       _storeHours.remove(day);
-      _availableDays.add(day); // Make the day available again
-      _availableDays.sort((a, b) => a.compareTo(b)); // Keep days sorted
+      _availableDays.add(day);
+      _availableDays.sort((a, b) => a.compareTo(b));
     });
   }
 
@@ -318,8 +333,7 @@ class _StoreHoursDialogState extends State<StoreHoursDialog> {
             return Row(
               children: [
                 Expanded(
-                  flex:
-                      3, // Ensures the dropdown takes up a reasonable amount of space
+                  flex: 3,
                   child: DropdownButton<String>(
                     isExpanded: true,
                     value: day,

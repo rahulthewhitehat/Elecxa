@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'store_location_picker_screen.dart'; // Import the new location picker screen
 
 class StoreOwnerProfileViewEditScreen extends StatefulWidget {
   @override
@@ -24,9 +26,10 @@ class _StoreOwnerProfileViewEditScreenState
   final _storeNameController = TextEditingController();
   List<String> _storeTypes = [];
   Map<String, Map<String, String>> _storeHours = {};
-  final _storeLocationController = TextEditingController();
   final _websiteController = TextEditingController();
   final _storeDescriptionController = TextEditingController();
+
+  LatLng? _selectedLocation; // Variable to store the selected location
 
   bool _isLoading = true;
 
@@ -58,7 +61,21 @@ class _StoreOwnerProfileViewEditScreenState
                     );
                   }) ??
                   {};
-          _storeLocationController.text = data['storeLocation'] ?? '';
+
+          // Safely access storeLocation and check its structure
+          if (data['storeLocation'] is Map<String, dynamic>) {
+            Map<String, dynamic> locationData = data['storeLocation'];
+            if (locationData.containsKey('latitude') &&
+                locationData.containsKey('longitude') &&
+                locationData['latitude'] is num &&
+                locationData['longitude'] is num) {
+              _selectedLocation = LatLng(
+                locationData['latitude'].toDouble(),
+                locationData['longitude'].toDouble(),
+              );
+            }
+          }
+
           _websiteController.text = data['website'] ?? '';
           _storeDescriptionController.text = data['storeDescription'] ?? '';
           _imageUrl = data['profileImageUrl'];
@@ -114,6 +131,18 @@ class _StoreOwnerProfileViewEditScreenState
     }
   }
 
+  void _selectStoreLocation() async {
+    final LatLng? selectedLocation = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => StoreLocationPickerScreen()),
+    );
+    if (selectedLocation != null) {
+      setState(() {
+        _selectedLocation = selectedLocation;
+      });
+    }
+  }
+
   void _saveProfile() async {
     try {
       User? user = _auth.currentUser;
@@ -130,6 +159,15 @@ class _StoreOwnerProfileViewEditScreenState
           imageUrl = _imageUrl; // Retain existing image URL if no new image
         }
 
+        // Store location data
+        Map<String, dynamic>? storeLocation;
+        if (_selectedLocation != null) {
+          storeLocation = {
+            'latitude': _selectedLocation!.latitude,
+            'longitude': _selectedLocation!.longitude,
+          };
+        }
+
         await _firestore.collection('storeOwners').doc(user.uid).update({
           'username': _usernameController.text.trim(),
           'name': _nameController.text.trim(),
@@ -137,7 +175,7 @@ class _StoreOwnerProfileViewEditScreenState
           'storeName': _storeNameController.text.trim(),
           'storeType': _storeTypes,
           'storeHours': _storeHours,
-          'storeLocation': _storeLocationController.text.trim(),
+          'storeLocation': storeLocation, // Save store location
           'website': _websiteController.text.trim(),
           'storeDescription': _storeDescriptionController.text.trim(),
           'profileImageUrl': imageUrl,
@@ -146,6 +184,9 @@ class _StoreOwnerProfileViewEditScreenState
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Profile updated successfully!')),
         );
+
+        // Navigate back to the settings screen after saving
+        Navigator.pop(context);
       }
     } catch (e) {
       print('Error: $e');
@@ -201,10 +242,16 @@ class _StoreOwnerProfileViewEditScreenState
                       controller: _storeNameController,
                       decoration: InputDecoration(labelText: 'Store Name'),
                     ),
-                    TextField(
-                      controller: _storeLocationController,
-                      decoration: InputDecoration(labelText: 'Store Location'),
+                    SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: _selectStoreLocation,
+                      child: Text('Select Store Location'),
                     ),
+                    _selectedLocation != null
+                        ? Text(
+                            'Location: (${_selectedLocation!.latitude}, ${_selectedLocation!.longitude})')
+                        : Text('No location selected'),
+                    SizedBox(height: 20),
                     TextButton(
                       onPressed: _selectStoreType,
                       child: Text('Select Store Type'),

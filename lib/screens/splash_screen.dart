@@ -4,6 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'role_selection_screen.dart';
 import 'package:elecxa/dashboards/customer_dashboard.dart'; // Import the customer dashboard screen
 import 'package:elecxa/dashboards/store_owner_dashboard.dart'; // Import the store owner dashboard screen
+import 'package:location/location.dart' as loc; // Alias for location package
+import 'package:geolocator/geolocator.dart'; // For geolocation services
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -17,22 +19,24 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     Future.delayed(Duration(seconds: 3), () {
-      // Increase the delay to 5 seconds
+      // 5-second delay
       _checkAuthentication();
     });
   }
 
   Future<void> _checkAuthentication() async {
+    // Guard clause to prevent multiple navigations
+    if (_isNavigating) return;
+
+    // Check authentication state
     User? user = FirebaseAuth.instance.currentUser;
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? role = prefs.getString('user_role');
 
-    // Guard clause to prevent multiple navigations
-    if (_isNavigating) return;
-    _isNavigating = true;
-
     if (user != null && role != null) {
-      // User is logged in and role is available
+      setState(() {
+        _isNavigating = true;
+      });
       if (role == 'customer') {
         Navigator.pushReplacement(
           context,
@@ -45,12 +49,46 @@ class _SplashScreenState extends State<SplashScreen> {
         );
       }
     } else {
-      // No user logged in or role not set
+      setState(() {
+        _isNavigating = true;
+      });
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => RoleSelectionScreen()),
       );
     }
+
+    // Request location permission, but do not block navigation if not granted
+    _requestLocationPermission();
+  }
+
+  Future<void> _requestLocationPermission() async {
+    loc.Location location = loc.Location();
+    bool _serviceEnabled;
+    loc.PermissionStatus _permissionGranted;
+
+    _serviceEnabled = await location.serviceEnabled();
+    if (!_serviceEnabled) {
+      _serviceEnabled = await location.requestService();
+    }
+
+    _permissionGranted = await location.hasPermission();
+    if (_permissionGranted == loc.PermissionStatus.denied) {
+      _permissionGranted = await location.requestPermission();
+    }
+
+    if (_permissionGranted == loc.PermissionStatus.granted) {
+      Position position = await _getCurrentLocation();
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.setDouble('latitude', position.latitude);
+      prefs.setDouble('longitude', position.longitude);
+    }
+  }
+
+  Future<Position> _getCurrentLocation() async {
+    return await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
   }
 
   @override

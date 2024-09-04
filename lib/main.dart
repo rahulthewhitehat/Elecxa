@@ -16,7 +16,7 @@ import 'screens/profile_view_edit_store_owner.dart'; // Import store owner profi
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(); // Initialize Firebase
   runApp(ElecxaApp());
 }
 
