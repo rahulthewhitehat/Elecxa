@@ -1,9 +1,24 @@
 import 'package:flutter/material.dart';
+import 'store_location_view_screen.dart'; // Import the new screen to view store location
+import 'package:geocoding/geocoding.dart'; // Import geocoding package for address lookup
 
 class ShowStoreDetailsScreen extends StatelessWidget {
   final Map<String, dynamic> store;
 
   ShowStoreDetailsScreen({required this.store});
+
+  Future<String> _getAddressFromCoordinates(double lat, double lng) async {
+    try {
+      List<Placemark> placemarks = await placemarkFromCoordinates(lat, lng);
+      if (placemarks.isNotEmpty) {
+        Placemark place = placemarks.first;
+        return "${place.locality}, ${place.administrativeArea}, ${place.country}";
+      }
+    } catch (e) {
+      print('Error fetching address: $e');
+    }
+    return 'No location available';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,8 +51,24 @@ class ShowStoreDetailsScreen extends StatelessWidget {
               Text(
                   'Type: ${(store['storeType'] is List) ? (store['storeType'] as List).join(', ') : (store['storeType'] ?? '-')}',
                   style: TextStyle(fontSize: 18)),
-              Text('Location: ${store['storeLocation'] ?? '-'}',
-                  style: TextStyle(fontSize: 18)),
+              FutureBuilder<String>(
+                future: _getAddressFromCoordinates(
+                  store['storeLocation']['latitude'] ?? 0.0,
+                  store['storeLocation']['longitude'] ?? 0.0,
+                ),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Text('Fetching location...',
+                        style: TextStyle(fontSize: 18));
+                  } else if (snapshot.hasError || !snapshot.hasData) {
+                    return Text('No location available',
+                        style: TextStyle(fontSize: 18));
+                  } else {
+                    return Text('Location: ${snapshot.data}',
+                        style: TextStyle(fontSize: 18));
+                  }
+                },
+              ),
               Text('Phone Number: ${store['phoneNumber'] ?? '-'}',
                   style: TextStyle(fontSize: 18)),
               Text('Website: ${store['website'] ?? '-'}',
@@ -54,11 +85,19 @@ class ShowStoreDetailsScreen extends StatelessWidget {
                 },
                 child: Text('Contact Store'),
               ),
+              SizedBox(height: 10),
               ElevatedButton(
                 onPressed: () {
-                  // Dummy message button action
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => StoreLocationViewScreen(
+                        location: store['storeLocation'],
+                      ),
+                    ),
+                  );
                 },
-                child: Text('Message Store'),
+                child: Text('View Store Location'),
               ),
             ],
           ),
