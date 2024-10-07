@@ -29,6 +29,13 @@ class StoreOwnerDashboard extends StatelessWidget {
               },
               child: Text('Manage Products'),
             ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/messages');
+              },
+              child: Text('Messages'),
+            ),
           ],
         ),
       ),

@@ -1,6 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'store_location_view_screen.dart'; // Import the new screen to view store location
+import 'chat_screen.dart'; // Import the chat screen to handle messages
 import 'package:geocoding/geocoding.dart'; // Import geocoding package for address lookup
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:convert'; // Import for hash generation
 
 class ShowStoreDetailsScreen extends StatelessWidget {
   final Map<String, dynamic> store;
@@ -20,11 +24,85 @@ class ShowStoreDetailsScreen extends StatelessWidget {
     return 'No location available';
   }
 
+  String _generateChatId(String customerId, String storeId) {
+    // Generate a consistent chat ID by hashing the customerId and storeId
+    List<String> ids = [customerId, storeId];
+    ids.sort(); // Ensure the order is consistent regardless of who starts the chat
+    return base64UrlEncode(utf8.encode(ids.join("_"))); // Create a hashed ID
+  }
+
+  void _openChatScreen(
+      BuildContext context, String storeId, String storeName) async {
+    String customerId = FirebaseAuth.instance.currentUser!.uid;
+
+    // Ensure that storeId is valid and not empty
+    if (storeId == null || storeId.isEmpty || storeId == 'Unknown Store ID') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: Invalid store ID. Please try again.')),
+      );
+      return;
+    }
+
+    // Fetch customer name from Firestore
+    DocumentSnapshot customerDoc = await FirebaseFirestore.instance
+        .collection('customers')
+        .doc(customerId)
+        .get();
+    String customerName = customerDoc['name'] ?? 'Unknown Customer';
+
+    // Generate a unique and consistent chat ID
+    String chatId = _generateChatId(customerId, storeId);
+
+    // Check if a chat already exists between the customer and the store
+    DocumentSnapshot chatDoc =
+        await FirebaseFirestore.instance.collection('chats').doc(chatId).get();
+
+    if (!chatDoc.exists) {
+      // Create a new chat document if it doesn't exist
+      await FirebaseFirestore.instance.collection('chats').doc(chatId).set({
+        'participants': [customerId, storeId],
+        'storeId': storeId,
+        'storeName': storeName,
+        'customerName': customerName,
+        'lastMessage': '',
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ChatScreen(
+          chatId: chatId,
+          storeId: storeId,
+          storeName: storeName,
+          customerName: customerName,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Ensure that we are correctly retrieving the storeId from the store data.
+    String? storeId = store['storeId'];
+    if (storeId == null || storeId.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text('Invalid Store'),
+          backgroundColor: Colors.red,
+        ),
+        body: Center(
+          child: Text('Store details not available. Please try again.'),
+        ),
+      );
+    }
+
+    String storeName = store['storeName'] ?? 'Unknown Store';
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(store['storeName'] ?? 'Store Details'),
+        title: Text(storeName),
         backgroundColor: Colors.blue,
       ),
       body: Padding(
@@ -46,11 +124,11 @@ class ShowStoreDetailsScreen extends StatelessWidget {
                   ),
                 ),
               SizedBox(height: 10),
-              Text('Store Name: ${store['storeName'] ?? '-'}',
-                  style: TextStyle(fontSize: 18)),
+              Text('Store Name: $storeName', style: TextStyle(fontSize: 18)),
               Text(
-                  'Type: ${(store['storeType'] is List) ? (store['storeType'] as List).join(', ') : (store['storeType'] ?? '-')}',
-                  style: TextStyle(fontSize: 18)),
+                'Type: ${(store['storeType'] is List) ? (store['storeType'] as List).join(', ') : (store['storeType'] ?? '-')}',
+                style: TextStyle(fontSize: 18),
+              ),
               FutureBuilder<String>(
                 future: _getAddressFromCoordinates(
                   store['storeLocation']['latitude'] ?? 0.0,
@@ -81,7 +159,7 @@ class ShowStoreDetailsScreen extends StatelessWidget {
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
-                  // Dummy contact button action
+                  _openChatScreen(context, storeId, storeName);
                 },
                 child: Text('Contact Store'),
               ),

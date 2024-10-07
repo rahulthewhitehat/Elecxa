@@ -1,6 +1,8 @@
 import 'package:elecxa/screens/browse_products_screen.dart';
 import 'package:elecxa/screens/browse_stores_screen.dart';
+import 'package:elecxa/screens/messages_list_screen.dart'; // Import for messages list screen
 import 'package:elecxa/screens/product_management_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'screens/splash_screen.dart';
@@ -43,7 +45,22 @@ class ElecxaApp extends StatelessWidget {
         '/storeOwnerProfile': (context) => StoreOwnerProfileViewEditScreen(),
         '/productManagement': (context) => ManageProductsScreen(),
         '/browseStores': (context) => BrowseStoresScreen(),
-        '/browseProducts': (context) => BrowseProductsScreen()
+        '/browseProducts': (context) => BrowseProductsScreen(),
+      },
+      onGenerateRoute: (settings) {
+        if (settings.name == '/messages') {
+          User? user = FirebaseAuth.instance.currentUser;
+          if (user != null) {
+            return MaterialPageRoute(
+              builder: (context) => MessagesListScreen(userId: user.uid),
+            );
+          } else {
+            return MaterialPageRoute(
+              builder: (context) => LoginScreen(role: 'customer'),
+            );
+          }
+        }
+        return null;
       },
     );
   }

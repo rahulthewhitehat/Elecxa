@@ -34,6 +34,13 @@ class CustomerDashboard extends StatelessWidget {
               },
               child: Text('Browse Products'),
             ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/messages');
+              },
+              child: Text('Messages'),
+            ),
           ],
         ),
       ),

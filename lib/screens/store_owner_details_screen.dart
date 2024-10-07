@@ -1,3 +1,4 @@
+import 'package:elecxa/screens/profile_view_edit_store_owner.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -90,17 +91,37 @@ class _StoreOwnerDetailsScreenState extends State<StoreOwnerDetailsScreen> {
     try {
       User? user = _auth.currentUser;
       if (user != null) {
+        String userId =
+            user.uid; // Use the authenticated user's UID as the store ID
+
         String? imageUrl;
         if (_profileImage != null) {
           final ref = FirebaseStorage.instance
               .ref()
               .child('store_owner_images')
-              .child(user.uid + '.jpg');
+              .child(userId + '.jpg');
           await ref.putFile(_profileImage!);
           imageUrl = await ref.getDownloadURL();
         }
 
-        await _firestore.collection('storeOwners').doc(user.uid).set({
+        // Ensure all the fields are not null before saving
+        if (_storeNameController.text.trim().isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Store name is required')),
+          );
+          return;
+        }
+
+        if (_storeLocation == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Please select store location')),
+          );
+          return;
+        }
+
+        // Set store details in Firestore using the authenticated user's UID as the document ID
+        await _firestore.collection('storeOwners').doc(userId).set({
+          'storeId': userId, // Explicitly save the storeId using userId
           'username': _usernameController.text.trim(),
           'name': _nameController.text.trim(),
           'phoneNumber': _phoneNumberController.text.trim(),
@@ -213,209 +234,6 @@ class _StoreOwnerDetailsScreenState extends State<StoreOwnerDetailsScreen> {
           ),
         ),
       ),
-    );
-  }
-}
-
-// Multi-select dialog for store type
-class MultiSelectDialog extends StatefulWidget {
-  final List<String> options;
-  final List<String> selectedOptions;
-
-  MultiSelectDialog({required this.options, required this.selectedOptions});
-
-  @override
-  _MultiSelectDialogState createState() => _MultiSelectDialogState();
-}
-
-class _MultiSelectDialogState extends State<MultiSelectDialog> {
-  List<String> _tempSelectedOptions = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _tempSelectedOptions = widget.selectedOptions;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text('Select Store Type'),
-      content: SingleChildScrollView(
-        child: ListBody(
-          children: widget.options.map((option) {
-            return CheckboxListTile(
-              title: Text(option),
-              value: _tempSelectedOptions.contains(option),
-              onChanged: (bool? value) {
-                if (value == true) {
-                  setState(() {
-                    _tempSelectedOptions.add(option);
-                  });
-                } else {
-                  setState(() {
-                    _tempSelectedOptions.remove(option);
-                  });
-                }
-              },
-            );
-          }).toList(),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () {
-            Navigator.pop(context, _tempSelectedOptions);
-          },
-          child: Text('OK'),
-        ),
-      ],
-    );
-  }
-}
-
-// Dialog for setting store hours
-class StoreHoursDialog extends StatefulWidget {
-  final Map<String, Map<String, String>> currentStoreHours;
-
-  StoreHoursDialog({required this.currentStoreHours});
-
-  @override
-  _StoreHoursDialogState createState() => _StoreHoursDialogState();
-}
-
-class _StoreHoursDialogState extends State<StoreHoursDialog> {
-  Map<String, Map<String, String>> _storeHours = {};
-  List<String> _availableDays = [
-    'Sunday',
-    'Monday',
-    'Tuesday',
-    'Wednesday',
-    'Thursday',
-    'Friday',
-    'Saturday'
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _storeHours = Map.from(widget.currentStoreHours);
-    _storeHours.keys.forEach((day) {
-      _availableDays.remove(day);
-    });
-  }
-
-  void _addStoreHour() {
-    if (_availableDays.isNotEmpty) {
-      setState(() {
-        String newDay = _availableDays.first;
-        _storeHours[newDay] = {'start': '09:00 AM', 'end': '05:00 PM'};
-        _availableDays.remove(newDay);
-      });
-    }
-  }
-
-  void _removeStoreHour(String day) {
-    setState(() {
-      _storeHours.remove(day);
-      _availableDays.add(day);
-      _availableDays.sort((a, b) => a.compareTo(b));
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text('Set Store Hours'),
-      content: SingleChildScrollView(
-        child: Column(
-          children: _storeHours.keys.map((day) {
-            return Row(
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: DropdownButton<String>(
-                    isExpanded: true,
-                    value: day,
-                    items: [DropdownMenuItem(value: day, child: Text(day))]
-                        .followedBy(
-                      _availableDays.map((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        );
-                      }),
-                    ).toList(),
-                    onChanged: (String? newValue) {
-                      if (newValue != null && newValue != day) {
-                        setState(() {
-                          _storeHours[newValue] = _storeHours.remove(day)!;
-                          _availableDays.add(day);
-                          _availableDays.remove(newValue);
-                          _availableDays.sort((a, b) => a.compareTo(b));
-                        });
-                      }
-                    },
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: TextButton(
-                    onPressed: () async {
-                      TimeOfDay? pickedTime = await showTimePicker(
-                        context: context,
-                        initialTime: TimeOfDay.now(),
-                      );
-                      if (pickedTime != null) {
-                        setState(() {
-                          _storeHours[day]!['start'] =
-                              pickedTime.format(context);
-                        });
-                      }
-                    },
-                    child: Text(_storeHours[day]!['start'] ?? 'Start Time'),
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: TextButton(
-                    onPressed: () async {
-                      TimeOfDay? pickedTime = await showTimePicker(
-                        context: context,
-                        initialTime: TimeOfDay.now(),
-                      );
-                      if (pickedTime != null) {
-                        setState(() {
-                          _storeHours[day]!['end'] = pickedTime.format(context);
-                        });
-                      }
-                    },
-                    child: Text(_storeHours[day]!['end'] ?? 'End Time'),
-                  ),
-                ),
-                IconButton(
-                  icon: Icon(Icons.delete, color: Colors.red),
-                  onPressed: () {
-                    _removeStoreHour(day);
-                  },
-                ),
-              ],
-            );
-          }).toList(),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: _addStoreHour,
-          child: Text('Add Day'),
-        ),
-        TextButton(
-          onPressed: () {
-            Navigator.pop(context, _storeHours);
-          },
-          child: Text('OK'),
-        ),
-      ],
     );
   }
 }
