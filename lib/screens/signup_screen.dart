@@ -16,6 +16,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
 
   void _signUpWithEmail() async {
     if (_passwordController.text.trim() !=
@@ -120,30 +122,88 @@ class _SignUpScreenState extends State<SignUpScreen> {
             'Sign Up as ${widget.role == 'customer' ? 'Customer' : 'Store Owner'}'),
         backgroundColor: Colors.blue,
       ),
+      backgroundColor: Colors.white,
       body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _emailController,
-              decoration: InputDecoration(labelText: 'Email'),
-            ),
-            TextField(
-              controller: _passwordController,
-              decoration: InputDecoration(labelText: 'Password'),
-              obscureText: true,
-            ),
-            TextField(
-              controller: _confirmPasswordController,
-              decoration: InputDecoration(labelText: 'Confirm Password'),
-              obscureText: true,
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _signUpWithEmail,
-              child: Text('Sign Up with Email'),
-            ),
-          ],
+        padding: EdgeInsets.symmetric(horizontal: 24.0),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextField(
+                controller: _emailController,
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  border: OutlineInputBorder(),
+                  filled: true,
+                  fillColor: Colors.blue.shade50,
+                ),
+              ),
+              SizedBox(height: 15),
+              TextField(
+                controller: _passwordController,
+                obscureText: !_isPasswordVisible,
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                  border: OutlineInputBorder(),
+                  filled: true,
+                  fillColor: Colors.blue.shade50,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _isPasswordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                      color: Colors.blue.shade700,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isPasswordVisible = !_isPasswordVisible;
+                      });
+                    },
+                  ),
+                ),
+              ),
+              SizedBox(height: 15),
+              TextField(
+                controller: _confirmPasswordController,
+                obscureText: !_isConfirmPasswordVisible,
+                decoration: InputDecoration(
+                  labelText: 'Confirm Password',
+                  border: OutlineInputBorder(),
+                  filled: true,
+                  fillColor: Colors.blue.shade50,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _isConfirmPasswordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                      color: Colors.blue.shade700,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                      });
+                    },
+                  ),
+                ),
+              ),
+              SizedBox(height: 30),
+              ElevatedButton(
+                onPressed: _signUpWithEmail,
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  backgroundColor: Colors.blue, // Set the button color to blue
+                ),
+                child: Text(
+                  'Sign Up with Email',
+                  style: TextStyle(
+                      fontSize: 16, color: Colors.white), // White text color
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

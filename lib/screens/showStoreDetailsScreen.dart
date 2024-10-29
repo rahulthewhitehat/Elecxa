@@ -84,7 +84,6 @@ class ShowStoreDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Ensure that we are correctly retrieving the storeId from the store data.
     String? storeId = store['storeId'];
     if (storeId == null || storeId.isEmpty) {
       return Scaffold(
@@ -105,77 +104,124 @@ class ShowStoreDetailsScreen extends StatelessWidget {
         title: Text(storeName),
         backgroundColor: Colors.blue,
       ),
+      backgroundColor: Colors.white,
       body: Padding(
         padding: EdgeInsets.all(16.0),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (store['profileImageUrl'] != null)
-                Container(
-                  width: 100,
-                  height: 100,
+              // Store profile image (larger size)
+              Center(
+                child: Container(
+                  width: 180,
+                  height: 180,
                   decoration: BoxDecoration(
                     image: DecorationImage(
-                      image: NetworkImage(store['profileImageUrl']),
+                      image: store['profileImageUrl'] != null
+                          ? NetworkImage(store['profileImageUrl'])
+                          : AssetImage('assets/default_store.png')
+                              as ImageProvider,
                       fit: BoxFit.cover,
                     ),
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(16),
+                    color: Colors.blue.shade50,
                   ),
                 ),
-              SizedBox(height: 10),
-              Text('Store Name: $storeName', style: TextStyle(fontSize: 18)),
-              Text(
-                'Type: ${(store['storeType'] is List) ? (store['storeType'] as List).join(', ') : (store['storeType'] ?? '-')}',
-                style: TextStyle(fontSize: 18),
               ),
+              SizedBox(height: 20),
+              // Store Name
+              Text(
+                storeName,
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue.shade700,
+                ),
+              ),
+              SizedBox(height: 10),
+              // Store type
+              _buildInfoRow(
+                icon: Icons.category,
+                label: 'Type',
+                value: (store['storeType'] is List)
+                    ? (store['storeType'] as List).join(', ')
+                    : (store['storeType'] ?? '-'),
+              ),
+              // Store location
               FutureBuilder<String>(
                 future: _getAddressFromCoordinates(
                   store['storeLocation']['latitude'] ?? 0.0,
                   store['storeLocation']['longitude'] ?? 0.0,
                 ),
                 builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Text('Fetching location...',
-                        style: TextStyle(fontSize: 18));
-                  } else if (snapshot.hasError || !snapshot.hasData) {
-                    return Text('No location available',
-                        style: TextStyle(fontSize: 18));
-                  } else {
-                    return Text('Location: ${snapshot.data}',
-                        style: TextStyle(fontSize: 18));
-                  }
-                },
-              ),
-              Text('Phone Number: ${store['phoneNumber'] ?? '-'}',
-                  style: TextStyle(fontSize: 18)),
-              Text('Website: ${store['website'] ?? '-'}',
-                  style: TextStyle(fontSize: 18)),
-              Text('Description: ${store['storeDescription'] ?? '-'}',
-                  style: TextStyle(fontSize: 18)),
-              SizedBox(height: 10),
-              Text('Store Hours:', style: TextStyle(fontSize: 18)),
-              ..._buildStoreHours(store['storeHours']),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  _openChatScreen(context, storeId, storeName);
-                },
-                child: Text('Contact Store'),
-              ),
-              SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => StoreLocationViewScreen(
-                        location: store['storeLocation'],
-                      ),
-                    ),
+                  return _buildInfoRow(
+                    icon: Icons.location_on,
+                    label: 'Location',
+                    value: snapshot.connectionState == ConnectionState.waiting
+                        ? 'Fetching location...'
+                        : snapshot.data ?? 'No location available',
                   );
                 },
-                child: Text('View Store Location'),
+              ),
+              _buildInfoRow(
+                icon: Icons.phone,
+                label: 'Phone Number',
+                value: store['phoneNumber'] ?? '-',
+              ),
+              _buildInfoRow(
+                icon: Icons.web,
+                label: 'Website',
+                value: store['website'] ?? '-',
+              ),
+              _buildInfoRow(
+                icon: Icons.description,
+                label: 'Description',
+                value: store['storeDescription'] ?? '-',
+              ),
+              SizedBox(height: 20),
+              // Store hours section with enhanced UI
+              Text(
+                'Store Hours:',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 10),
+              _buildStoreHours(store['storeHours']),
+              SizedBox(height: 20),
+              // Contact and Location buttons
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      _openChatScreen(context, storeId, storeName);
+                    },
+                    icon: Icon(Icons.message),
+                    label: Text('Contact Store'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue.shade600,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => StoreLocationViewScreen(
+                            location: store['storeLocation'],
+                          ),
+                        ),
+                      );
+                    },
+                    icon: Icon(Icons.map),
+                    label: Text('View Location'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue.shade600,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -184,17 +230,78 @@ class ShowStoreDetailsScreen extends StatelessWidget {
     );
   }
 
-  List<Widget> _buildStoreHours(Map<String, dynamic>? storeHours) {
+  Widget _buildInfoRow(
+      {required IconData icon, required String label, required String value}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.blue.shade600),
+          SizedBox(width: 10),
+          Text(
+            '$label: ',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(fontSize: 16, color: Colors.grey.shade800),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 2,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStoreHours(Map<String, dynamic>? storeHours) {
     if (storeHours == null || storeHours.isEmpty) {
-      return [Text('No hours set', style: TextStyle(fontSize: 16))];
+      return Text('No hours set', style: TextStyle(fontSize: 16));
     }
-    List<Widget> hoursWidgets = [];
-    storeHours.forEach((day, hours) {
-      hoursWidgets.add(
-        Text('$day: ${hours['start']} to ${hours['end']}',
-            style: TextStyle(fontSize: 16)),
-      );
-    });
-    return hoursWidgets;
+
+    // Define the ordered days of the week
+    final List<String> daysOfWeek = [
+      'Sunday',
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday'
+    ];
+
+    // Filter and display the store hours in order
+    return Column(
+      children:
+          daysOfWeek.where((day) => storeHours.containsKey(day)).map((day) {
+        final hours = storeHours[day];
+        return Container(
+          margin: const EdgeInsets.symmetric(vertical: 5.0),
+          padding: const EdgeInsets.all(10.0),
+          decoration: BoxDecoration(
+            color: Colors.blue.shade50,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.blue.shade100),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                day,
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue.shade700),
+              ),
+              Text(
+                '${hours['start']} - ${hours['end']}',
+                style: TextStyle(fontSize: 16, color: Colors.grey.shade800),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
   }
 }

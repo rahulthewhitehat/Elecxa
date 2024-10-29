@@ -2,41 +2,59 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'role_selection_screen.dart';
-import 'package:elecxa/dashboards/customer_dashboard.dart'; // Import the customer dashboard screen
-import 'package:elecxa/dashboards/store_owner_dashboard.dart'; // Import the store owner dashboard screen
-import 'package:location/location.dart' as loc; // Alias for location package
-import 'package:geolocator/geolocator.dart'; // For geolocation services
+import '../dashboards/customer_dashboard.dart';
+import '../dashboards/store_owner_dashboard.dart';
+import 'package:location/location.dart' as loc;
+import 'package:geolocator/geolocator.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
   _SplashScreenState createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
-  bool _isNavigating = false; // Flag to prevent multiple navigations
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
+  bool _isNavigating = false;
+  late AnimationController _controller;
+  late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
     super.initState();
+
+    _controller = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: 2),
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeIn,
+    );
+    _controller.forward();
+
     Future.delayed(Duration(seconds: 3), () {
-      // 5-second delay
       _checkAuthentication();
     });
   }
 
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   Future<void> _checkAuthentication() async {
-    // Guard clause to prevent multiple navigations
     if (_isNavigating) return;
 
-    // Check authentication state
     User? user = FirebaseAuth.instance.currentUser;
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? role = prefs.getString('user_role');
 
+    setState(() {
+      _isNavigating = true;
+    });
+
     if (user != null && role != null) {
-      setState(() {
-        _isNavigating = true;
-      });
       if (role == 'customer') {
         Navigator.pushReplacement(
           context,
@@ -49,16 +67,12 @@ class _SplashScreenState extends State<SplashScreen> {
         );
       }
     } else {
-      setState(() {
-        _isNavigating = true;
-      });
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => RoleSelectionScreen()),
       );
     }
 
-    // Request location permission, but do not block navigation if not granted
     _requestLocationPermission();
   }
 
@@ -96,18 +110,36 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset('assets/logo.png', height: 300),
-            SizedBox(height: 20),
-            Text(
-              'Elecxa',
-              style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 20),
-            CircularProgressIndicator(),
-          ],
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset('assets/logo.png', height: 200),
+              SizedBox(height: 20),
+              Text(
+                'Elecxa',
+                style: TextStyle(
+                  fontSize: 36,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue.shade700,
+                ),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Local Electronics, Simplified!',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.blue.shade600,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+              SizedBox(height: 40),
+              CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -17,8 +17,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _isPasswordVisible = false;
 
-  // Email/Password Login
   void _loginWithEmail() async {
     try {
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
@@ -26,31 +26,24 @@ class _LoginScreenState extends State<LoginScreen> {
         password: _passwordController.text.trim(),
       );
 
-      // Check for role consistency
       await _checkRoleConsistency(userCredential.user);
     } on FirebaseAuthException catch (e) {
-      String errorMessage = 'Wrong password. Try again.';
-      if (e.code == 'wrong-password') {
+      String errorMessage = 'An unexpected error occurred. Please try again.';
+      if (e.code == 'wrong-password')
         errorMessage = 'Wrong password. Try again.';
-      } else if (e.code == 'user-not-found') {
+      if (e.code == 'user-not-found')
         errorMessage = 'No user found for this email.';
-      } else if (e.code == 'invalid-email') {
+      if (e.code == 'invalid-email')
         errorMessage = 'The email address is badly formatted.';
-      } else if (e.code == 'user-disabled') {
+      if (e.code == 'user-disabled')
         errorMessage = 'This user has been disabled.';
-      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(errorMessage)),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text('An unexpected error occurred. Please try again.')),
       );
     }
   }
 
-  // Google Login
   Future<void> _loginWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
@@ -67,17 +60,14 @@ class _LoginScreenState extends State<LoginScreen> {
       final UserCredential userCredential =
           await _auth.signInWithCredential(credential);
 
-      // Check for role consistency
       await _checkRoleConsistency(userCredential.user);
     } catch (e) {
-      print('Error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to log in with Google.')),
       );
     }
   }
 
-  // Check if the user role is consistent with their login role
   Future<void> _checkRoleConsistency(User? user) async {
     if (user != null) {
       final customerDoc = await FirebaseFirestore.instance
@@ -113,7 +103,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  // Forgot Password
   void _forgotPassword() {
     showDialog(
       context: context,
@@ -134,7 +123,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   SnackBar(content: Text('Password reset email sent!')),
                 );
               } catch (e) {
-                print('Error: $e');
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text('Failed to send reset email.')),
                 );
@@ -158,17 +146,17 @@ class _LoginScreenState extends State<LoginScreen> {
           .get();
 
       if (userDoc.exists) {
-        if (widget.role == 'customer') {
-          Navigator.pushReplacementNamed(context, '/customerDashboard');
-        } else {
-          Navigator.pushReplacementNamed(context, '/storeOwnerDashboard');
-        }
+        Navigator.pushReplacementNamed(
+            context,
+            widget.role == 'customer'
+                ? '/customerDashboard'
+                : '/storeOwnerDashboard');
       } else {
-        if (widget.role == 'customer') {
-          Navigator.pushReplacementNamed(context, '/customerDetails');
-        } else {
-          Navigator.pushReplacementNamed(context, '/storeOwnerDetails');
-        }
+        Navigator.pushReplacementNamed(
+            context,
+            widget.role == 'customer'
+                ? '/customerDetails'
+                : '/storeOwnerDetails');
       }
     }
   }
@@ -188,37 +176,117 @@ class _LoginScreenState extends State<LoginScreen> {
             'Login as ${widget.role == 'customer' ? 'Customer' : 'Store Owner'}'),
         backgroundColor: Colors.blue,
       ),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _emailController,
-              decoration: InputDecoration(labelText: 'Email'),
+      backgroundColor: Colors.white,
+      body: SingleChildScrollView(
+        padding: EdgeInsets.symmetric(horizontal: 24.0),
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 60.0),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: MediaQuery.of(context).size.height - kToolbarHeight,
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Welcome Back!',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue.shade700,
+                    ),
+                  ),
+                  SizedBox(height: 15),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: TextField(
+                      controller: _emailController,
+                      decoration: InputDecoration(
+                        labelText: 'Email',
+                        border: InputBorder.none,
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 15, vertical: 12),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 15),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: TextField(
+                      controller: _passwordController,
+                      obscureText: !_isPasswordVisible,
+                      decoration: InputDecoration(
+                        labelText: 'Password',
+                        border: InputBorder.none,
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 15, vertical: 12),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _isPasswordVisible
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                            color: Colors.blue.shade700,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isPasswordVisible = !_isPasswordVisible;
+                            });
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: _loginWithEmail,
+                    style: ElevatedButton.styleFrom(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                      backgroundColor: Colors.blue.shade600,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: Text(
+                      'Login with Email',
+                      style: TextStyle(fontSize: 16, color: Colors.white),
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  TextButton(
+                    onPressed: _forgotPassword,
+                    child: Text('Forgot Password?',
+                        style: TextStyle(color: Colors.blue.shade700)),
+                  ),
+                  TextButton(
+                    onPressed: _navigateToSignUpScreen,
+                    child: Text('Register Here',
+                        style: TextStyle(color: Colors.blue.shade700)),
+                  ),
+                  SizedBox(height: 40),
+                  Text('or', style: TextStyle(color: Colors.grey.shade600)),
+                  SizedBox(height: 20),
+                  GestureDetector(
+                    onTap: _loginWithGoogle,
+                    child: CircleAvatar(
+                      radius: 20,
+                      backgroundColor: Colors.white,
+                      backgroundImage: AssetImage(
+                          'assets/google_logo.png'), // Path to your asset image
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                ],
+              ),
             ),
-            TextField(
-              controller: _passwordController,
-              decoration: InputDecoration(labelText: 'Password'),
-              obscureText: true,
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _loginWithEmail,
-              child: Text('Login with Email'),
-            ),
-            ElevatedButton(
-              onPressed: _loginWithGoogle,
-              child: Text('Login with Google'),
-            ),
-            TextButton(
-              onPressed: _forgotPassword,
-              child: Text('Forgot Password?'),
-            ),
-            TextButton(
-              onPressed: _navigateToSignUpScreen,
-              child: Text('Sign Up'),
-            ),
-          ],
+          ),
         ),
       ),
     );

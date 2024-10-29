@@ -75,7 +75,7 @@ class _CustomerProfileViewEditScreenState
           await ref.putFile(_profileImage!);
           imageUrl = await ref.getDownloadURL();
         } else {
-          imageUrl = _imageUrl; // Retain existing image URL if no new image
+          imageUrl = _imageUrl;
         }
 
         await _firestore.collection('customers').doc(user.uid).update({
@@ -106,58 +106,83 @@ class _CustomerProfileViewEditScreenState
         title: Text('Customer Profile'),
         backgroundColor: Colors.blue,
       ),
+      backgroundColor: Colors.white,
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : Padding(
-              padding: EdgeInsets.all(16.0),
+              padding: EdgeInsets.symmetric(horizontal: 24.0),
               child: SingleChildScrollView(
                 child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    SizedBox(height: 30),
                     GestureDetector(
                       onTap: _pickImage,
                       child: CircleAvatar(
-                        radius: 40,
+                        radius: 50,
                         backgroundImage: _profileImage != null
                             ? FileImage(_profileImage!)
                             : _imageUrl != null
                                 ? NetworkImage(_imageUrl!)
                                 : AssetImage('assets/default_profile.png')
-                                    as ImageProvider, // Default image if none
+                                    as ImageProvider,
+                        backgroundColor: Colors.blue.shade50,
                         child: _profileImage == null && _imageUrl == null
-                            ? Icon(Icons.add_a_photo, size: 40)
+                            ? Icon(Icons.add_a_photo,
+                                size: 40, color: Colors.blue)
                             : null,
                       ),
                     ),
-                    SizedBox(height: 20),
-                    TextField(
-                      controller: _usernameController,
-                      decoration: InputDecoration(labelText: 'Username'),
-                    ),
-                    TextField(
-                      controller: _nameController,
-                      decoration: InputDecoration(labelText: 'Name'),
-                    ),
-                    TextField(
-                      controller: _phoneNumberController,
-                      decoration: InputDecoration(labelText: 'Phone Number'),
-                    ),
-                    TextField(
-                      controller: _locationController,
-                      decoration: InputDecoration(labelText: 'Location'),
-                    ),
-                    TextField(
-                      controller: _bioController,
-                      decoration: InputDecoration(labelText: 'Bio (optional)'),
-                    ),
-                    SizedBox(height: 20),
+                    SizedBox(height: 25),
+                    _buildTextField(
+                        controller: _usernameController, label: 'Username'),
+                    _buildTextField(controller: _nameController, label: 'Name'),
+                    _buildTextField(
+                        controller: _phoneNumberController,
+                        label: 'Phone Number'),
+                    _buildTextField(
+                        controller: _locationController, label: 'Location'),
+                    _buildTextField(
+                        controller: _bioController, label: 'Bio (optional)'),
+                    SizedBox(height: 30),
                     ElevatedButton(
                       onPressed: _saveProfile,
-                      child: Text('Save Changes'),
+                      style: ElevatedButton.styleFrom(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                        backgroundColor: Colors.blue.shade600,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Text('Save Changes',
+                          style: TextStyle(fontSize: 16, color: Colors.white)),
                     ),
                   ],
                 ),
               ),
             ),
+    );
+  }
+
+  Widget _buildTextField(
+      {required TextEditingController controller, required String label}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 15),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.blue.shade50,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            labelText: label,
+            border: InputBorder.none,
+            contentPadding: EdgeInsets.symmetric(horizontal: 15, vertical: 12),
+          ),
+        ),
+      ),
     );
   }
 }

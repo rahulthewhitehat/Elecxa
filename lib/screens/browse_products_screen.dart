@@ -1,8 +1,7 @@
 import 'dart:async';
-import 'package:elecxa/screens/showStoreDetailsScreen.dart'; // Import the ShowStoreDetailsScreen
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'product_detail_screen.dart'; // Import the ProductDetailScreen
+import 'product_detail_screen.dart';
 
 class BrowseProductsScreen extends StatefulWidget {
   @override
@@ -20,23 +19,27 @@ class _BrowseProductsScreenState extends State<BrowseProductsScreen> {
     setState(() {
       _searchQuery = query.toLowerCase();
     });
-    if (_productSubscription != null) {
-      _productSubscription!.cancel();
-    }
+    _fetchFilteredProducts();
+  }
 
-    // Real-time, case-insensitive search
+  void _fetchFilteredProducts() {
+    _productSubscription?.cancel();
+
     _productSubscription = _firestore
         .collectionGroup('products')
         .snapshots()
         .listen((QuerySnapshot snapshot) {
       setState(() {
         _products = snapshot.docs.where((doc) {
-          final productName = (doc['name'] ?? '').toString().toLowerCase();
+          final productData = doc.data() as Map<String, dynamic>;
+          final productName =
+              (productData['name'] ?? '').toString().toLowerCase();
           final productType =
-              (doc['productType'] ?? '').toString().toLowerCase();
-          return productName.contains(_searchQuery) &&
-              (_selectedType == 'All' ||
-                  productType == _selectedType.toLowerCase());
+              (productData['productType'] ?? '').toString().toLowerCase();
+          final matchesSearch = productName.contains(_searchQuery);
+          final matchesType = _selectedType == 'All' ||
+              productType == _selectedType.toLowerCase();
+          return matchesSearch && matchesType;
         }).toList();
       });
     });
@@ -45,12 +48,7 @@ class _BrowseProductsScreenState extends State<BrowseProductsScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchProducts();
-  }
-
-  void _fetchProducts() {
-    // Initialize subscription to fetch products with real-time updates
-    _searchProducts(''); // Trigger initial fetch with empty query
+    _fetchFilteredProducts();
   }
 
   @override
@@ -63,75 +61,135 @@ class _BrowseProductsScreenState extends State<BrowseProductsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Browse Products'),
-        backgroundColor: Colors.blue,
+        title: Text('Browse Products', style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.blue.shade700,
+        elevation: 0,
       ),
       body: Column(
         children: [
-          Padding(
-            padding: EdgeInsets.all(8.0),
+          Container(
+            color: Colors.blue.shade700,
+            padding: EdgeInsets.all(10),
             child: Row(
               children: [
                 Expanded(
                   child: TextField(
                     decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.white,
                       hintText: 'Search by product name',
+                      hintStyle: TextStyle(color: Colors.grey.shade600),
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(30),
+                        borderSide: BorderSide.none,
+                      ),
                     ),
                     onChanged: _searchProducts,
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.search),
-                  onPressed: () => _searchProducts(
-                      _searchQuery), // Updated to trigger search
+                  icon: Icon(Icons.search, color: Colors.white),
+                  onPressed: () => _searchProducts(_searchQuery),
                 ),
               ],
             ),
           ),
           Padding(
-            padding: EdgeInsets.all(8.0),
-            child: DropdownButton<String>(
+            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            child: DropdownButtonFormField<String>(
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: Colors.blue.shade50,
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: BorderSide.none,
+                ),
+              ),
               value: _selectedType,
               items: ['All', 'Electronics', 'Hardware', 'Plumbing Materials']
-                  .map((type) => DropdownMenuItem(
-                        value: type,
-                        child: Text(type),
-                      ))
+                  .map((type) =>
+                      DropdownMenuItem(value: type, child: Text(type)))
                   .toList(),
               onChanged: (value) {
                 setState(() {
                   _selectedType = value!;
                 });
-                _searchProducts(_searchQuery);
+                _fetchFilteredProducts();
               },
               hint: Text('Filter by Type'),
             ),
           ),
           Expanded(
             child: _products.isEmpty
-                ? Center(child: Text('No products found'))
+                ? Center(
+                    child: Text(
+                      'No products found',
+                      style:
+                          TextStyle(fontSize: 16, color: Colors.grey.shade600),
+                    ),
+                  )
                 : ListView.builder(
+                    padding: EdgeInsets.all(10),
                     itemCount: _products.length,
                     itemBuilder: (context, index) {
                       final product =
                           _products[index].data() as Map<String, dynamic>;
-                      return ListTile(
-                        leading: product['imageUrl1'] != null
-                            ? Image.network(product['imageUrl1'],
-                                width: 50, height: 50)
-                            : null,
-                        title: Text(product['name'] ?? ''),
-                        subtitle: Text(
-                            '₹${product['price']} - ${product['isAvailable'] ? 'Available' : 'Unavailable'}'),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  ProductDetailScreen(product: product),
+                      return Card(
+                        elevation: 3,
+                        margin: EdgeInsets.symmetric(vertical: 8),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        child: ListTile(
+                          contentPadding: EdgeInsets.all(12),
+                          leading: product['imageUrl1'] != null
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.network(
+                                    product['imageUrl1'],
+                                    width: 60,
+                                    height: 60,
+                                    fit: BoxFit.cover,
+                                  ),
+                                )
+                              : Container(
+                                  width: 60,
+                                  height: 60,
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue.shade50,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Icon(Icons.image_not_supported,
+                                      size: 40, color: Colors.blue.shade700),
+                                ),
+                          title: Text(
+                            product['name'] ?? '',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue.shade800,
                             ),
-                          );
-                        },
+                          ),
+                          subtitle: Text(
+                            '₹${product['price']} - ${product['isAvailable'] ? 'Available' : 'Unavailable'}',
+                            style: TextStyle(
+                                fontSize: 14, color: Colors.grey.shade700),
+                          ),
+                          trailing: Icon(Icons.arrow_forward_ios,
+                              size: 16, color: Colors.blue.shade700),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    ProductDetailScreen(product: product),
+                              ),
+                            );
+                          },
+                        ),
                       );
                     },
                   ),

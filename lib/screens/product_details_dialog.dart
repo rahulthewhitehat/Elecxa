@@ -117,23 +117,57 @@ class _ProductDetailsDialogState extends State<ProductDetailsDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(widget.product == null ? 'Add Product' : 'Edit Product'),
+      title: Text(
+        widget.product == null ? 'Add Product' : 'Edit Product',
+        style: TextStyle(
+          color: Colors.blue.shade700,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
       content: SingleChildScrollView(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             TextField(
               controller: _nameController,
-              decoration: InputDecoration(labelText: 'Product Name'),
+              decoration: InputDecoration(
+                labelText: 'Product Name',
+                filled: true,
+                fillColor: Colors.blue.shade50,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide.none,
+                ),
+              ),
             ),
+            SizedBox(height: 10),
             TextField(
               controller: _descriptionController,
-              decoration: InputDecoration(labelText: 'Product Description'),
+              decoration: InputDecoration(
+                labelText: 'Product Description',
+                filled: true,
+                fillColor: Colors.blue.shade50,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide.none,
+                ),
+              ),
             ),
+            SizedBox(height: 10),
             TextField(
               controller: _priceController,
-              decoration: InputDecoration(labelText: 'Price'),
+              decoration: InputDecoration(
+                labelText: 'Price',
+                filled: true,
+                fillColor: Colors.blue.shade50,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide.none,
+                ),
+              ),
               keyboardType: TextInputType.number,
             ),
+            SizedBox(height: 10),
             DropdownButtonFormField<String>(
               value: _selectedProductType,
               items: ['Electronics', 'Hardware', 'Plumbing Materials']
@@ -147,10 +181,20 @@ class _ProductDetailsDialogState extends State<ProductDetailsDialog> {
                   _selectedProductType = value!;
                 });
               },
-              decoration: InputDecoration(labelText: 'Product Type'),
+              decoration: InputDecoration(
+                labelText: 'Product Type',
+                filled: true,
+                fillColor: Colors.blue.shade50,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide.none,
+                ),
+              ),
             ),
+            SizedBox(height: 10),
             SwitchListTile(
               title: Text('Available'),
+              activeColor: Colors.blue,
               value: _isAvailable,
               onChanged: (value) {
                 setState(() {
@@ -158,16 +202,19 @@ class _ProductDetailsDialogState extends State<ProductDetailsDialog> {
                 });
               },
             ),
+            SizedBox(height: 10),
             Wrap(
+              spacing: 8.0,
+              runSpacing: 8.0,
               children: List.generate(3, (index) {
                 return GestureDetector(
                   onTap: () => _pickImage(index),
                   child: Container(
-                    margin: EdgeInsets.all(4.0),
                     width: 80,
                     height: 80,
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
+                      color: Colors.blue.shade50,
+                      border: Border.all(color: Colors.blue.shade200),
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                     child: _images[index] != null
@@ -175,7 +222,8 @@ class _ProductDetailsDialogState extends State<ProductDetailsDialog> {
                         : (_imageUrls[index] != null
                             ? Image.network(_imageUrls[index]!,
                                 fit: BoxFit.cover)
-                            : Icon(Icons.add_photo_alternate)),
+                            : Icon(Icons.add_photo_alternate,
+                                color: Colors.blue.shade700)),
                   ),
                 );
               }),
@@ -186,11 +234,23 @@ class _ProductDetailsDialogState extends State<ProductDetailsDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text('Cancel'),
+          child: Text(
+            'Cancel',
+            style: TextStyle(color: Colors.red),
+          ),
         ),
         ElevatedButton(
           onPressed: _saveProduct,
-          child: Text('Save'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blue.shade700,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          child: Text(
+            'Save',
+            style: TextStyle(color: Colors.white), // White text color
+          ),
         ),
       ],
     );

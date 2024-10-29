@@ -67,51 +67,112 @@ class _BrowseStoresScreenState extends State<BrowseStoresScreen> {
 
   @override
   Widget build(BuildContext context) {
+    List<DocumentSnapshot> filteredStores = _stores.where((store) {
+      final storeData = store.data() as Map<String, dynamic>;
+      final storeName = storeData['storeName']?.toLowerCase() ?? '';
+      final storeType =
+          (storeData['storeType'] as List?)?.join(', ').toLowerCase() ?? '';
+      final location = storeData['storeLocation']?['city']?.toLowerCase() ?? '';
+      return storeName.contains(_searchQuery) ||
+          storeType.contains(_searchQuery) ||
+          location.contains(_searchQuery);
+    }).toList();
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('Browse Stores'),
-        backgroundColor: Colors.blue,
+        title: Text('Browse Stores', style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.blue.shade700,
+        elevation: 0,
       ),
       body: Column(
         children: [
-          Padding(
-            padding: EdgeInsets.all(8.0),
+          Container(
+            color: Colors.blue.shade700,
+            padding: EdgeInsets.all(10),
             child: TextField(
               decoration: InputDecoration(
+                filled: true,
+                fillColor: Colors.white,
                 hintText: 'Search by store name, type, or location',
-                suffixIcon: Icon(Icons.search),
+                hintStyle: TextStyle(color: Colors.grey.shade600),
+                suffixIcon: Icon(Icons.search, color: Colors.blue.shade700),
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: BorderSide.none,
+                ),
               ),
-              onChanged: _searchStores, // Update search query in real-time
+              onChanged: _searchStores,
             ),
           ),
           Expanded(
-            child: _stores.isEmpty
-                ? Center(child: Text('No stores found'))
+            child: filteredStores.isEmpty
+                ? Center(
+                    child: Text('No stores found',
+                        style: TextStyle(
+                            fontSize: 16, color: Colors.grey.shade600)),
+                  )
                 : ListView.builder(
-                    itemCount: _stores.length,
+                    padding: EdgeInsets.all(10),
+                    itemCount: filteredStores.length,
                     itemBuilder: (context, index) {
                       final store =
-                          _stores[index].data() as Map<String, dynamic>;
-                      return ListTile(
-                        leading: store['profileImageUrl'] != null
-                            ? Image.network(store['profileImageUrl'],
-                                width: 50, height: 50)
-                            : Icon(Icons.store, size: 50),
-                        title: Text(store['storeName'] ?? ''),
-                        subtitle: Text(
-                          (store['storeType'] is List)
-                              ? (store['storeType'] as List).join(', ')
-                              : (store['storeType'] ?? ''),
-                        ),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  ShowStoreDetailsScreen(store: store),
+                          filteredStores[index].data() as Map<String, dynamic>;
+                      return Card(
+                        elevation: 3,
+                        margin: EdgeInsets.symmetric(vertical: 8),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        child: ListTile(
+                          contentPadding: EdgeInsets.all(12),
+                          leading: store['profileImageUrl'] != null
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.network(
+                                    store['profileImageUrl'],
+                                    width: 60,
+                                    height: 60,
+                                    fit: BoxFit.cover,
+                                  ),
+                                )
+                              : Container(
+                                  width: 60,
+                                  height: 60,
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue.shade50,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Icon(Icons.store,
+                                      size: 40, color: Colors.blue.shade700),
+                                ),
+                          title: Text(
+                            store['storeName'] ?? '',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue.shade800,
                             ),
-                          );
-                        },
+                          ),
+                          subtitle: Text(
+                            (store['storeType'] is List)
+                                ? (store['storeType'] as List).join(', ')
+                                : (store['storeType'] ?? ''),
+                            style: TextStyle(
+                                fontSize: 14, color: Colors.grey.shade700),
+                          ),
+                          trailing: Icon(Icons.arrow_forward_ios,
+                              size: 16, color: Colors.blue.shade700),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    ShowStoreDetailsScreen(store: store),
+                              ),
+                            );
+                          },
+                        ),
                       );
                     },
                   ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'showStoreDetailsScreen.dart'; // Ensure this import if using ShowStoreDetailsScreen
+import 'showStoreDetailsScreen.dart';
 
 class ProductDetailScreen extends StatelessWidget {
   final Map<String, dynamic> product;
@@ -8,10 +8,7 @@ class ProductDetailScreen extends StatelessWidget {
   ProductDetailScreen({required this.product});
 
   void _navigateToStoreDetails(BuildContext context) async {
-    final storeId = product['storeId']; // Ensure 'storeId' is present
-
-    // Debugging statement to print product data
-    print("Product Data: $product");
+    final storeId = product['storeId'];
 
     if (storeId != null) {
       final storeDoc = await FirebaseFirestore.instance
@@ -29,13 +26,11 @@ class ProductDetailScreen extends StatelessWidget {
           ),
         );
       } else {
-        // Store document does not exist
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Store details not found.')),
         );
       }
     } else {
-      // storeId is missing or null in product
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Store ID not available.')),
       );
@@ -49,28 +44,105 @@ class ProductDetailScreen extends StatelessWidget {
         title: Text(product['name'] ?? 'Product Details'),
         backgroundColor: Colors.blue,
       ),
+      backgroundColor: Colors.white,
       body: Padding(
         padding: EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (product['imageUrl1'] != null)
-              Image.network(product['imageUrl1'], width: 150, height: 150),
-            Text('Name: ${product['name']}', style: TextStyle(fontSize: 18)),
-            Text('Type: ${product['productType']}',
-                style: TextStyle(fontSize: 18)),
-            Text('Price: ₹${product['price']}', style: TextStyle(fontSize: 18)),
-            Text('Available: ${product['isAvailable'] ? 'Yes' : 'No'}',
-                style: TextStyle(fontSize: 18)),
-            Text('Description: ${product['description']}',
-                style: TextStyle(fontSize: 18)),
-            Spacer(),
-            ElevatedButton(
-              onPressed: () => _navigateToStoreDetails(context),
-              child: Text('About Store'),
-            ),
-          ],
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Product image
+              Center(
+                child: Container(
+                  width: 180,
+                  height: 180,
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: product['imageUrl1'] != null
+                          ? NetworkImage(product['imageUrl1'])
+                          : AssetImage('assets/default_product.png')
+                              as ImageProvider,
+                      fit: BoxFit.cover,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    color: Colors.blue.shade50,
+                  ),
+                ),
+              ),
+              SizedBox(height: 20),
+              // Product Name
+              Text(
+                product['name'] ?? 'Product Name',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue.shade700,
+                ),
+              ),
+              SizedBox(height: 10),
+              // Product details
+              _buildInfoRow(
+                icon: Icons.category,
+                label: 'Type',
+                value: product['productType'] ?? '-',
+              ),
+              _buildInfoRow(
+                icon: Icons.price_check,
+                label: 'Price',
+                value: '₹${product['price'] ?? 'N/A'}',
+              ),
+              _buildInfoRow(
+                icon: Icons.check_circle_outline,
+                label: 'Available',
+                value: product['isAvailable'] == true ? 'Yes' : 'No',
+              ),
+              _buildInfoRow(
+                icon: Icons.description,
+                label: 'Description',
+                value: product['description'] ?? '-',
+              ),
+              SizedBox(height: 30),
+              // About Store button
+              Center(
+                child: ElevatedButton.icon(
+                  onPressed: () => _navigateToStoreDetails(context),
+                  icon: Icon(Icons.store),
+                  label: Text('About Store'),
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+                    backgroundColor: Colors.blue.shade600,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(
+      {required IconData icon, required String label, required String value}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.blue.shade600),
+          SizedBox(width: 10),
+          Text(
+            '$label: ',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(fontSize: 16, color: Colors.grey.shade800),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 2,
+            ),
+          ),
+        ],
       ),
     );
   }

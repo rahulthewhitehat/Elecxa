@@ -160,77 +160,111 @@ class _StoreOwnerDetailsScreenState extends State<StoreOwnerDetailsScreen> {
         title: Text('Store Owner Details'),
         backgroundColor: Colors.blue,
       ),
+      backgroundColor: Colors.white,
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: EdgeInsets.symmetric(horizontal: 24.0),
         child: SingleChildScrollView(
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              SizedBox(height: 30),
               GestureDetector(
                 onTap: _pickImage,
                 child: CircleAvatar(
-                  radius: 40,
+                  radius: 50,
                   backgroundImage:
                       _profileImage != null ? FileImage(_profileImage!) : null,
+                  backgroundColor: Colors.blue.shade50,
                   child: _profileImage == null
-                      ? Icon(Icons.add_a_photo, size: 40)
+                      ? Icon(Icons.add_a_photo, size: 40, color: Colors.blue)
                       : null,
                 ),
               ),
-              SizedBox(height: 20),
-              TextField(
-                controller: _usernameController,
-                decoration: InputDecoration(labelText: 'Username'),
-              ),
-              TextField(
-                controller: _nameController,
-                decoration: InputDecoration(labelText: 'Name'),
-              ),
-              TextField(
-                controller: _phoneNumberController,
-                decoration: InputDecoration(labelText: 'Phone Number'),
-              ),
-              TextField(
-                controller: _storeNameController,
-                decoration: InputDecoration(labelText: 'Store Name'),
-              ),
+              SizedBox(height: 25),
+              _buildTextField(
+                  controller: _usernameController, label: 'Username'),
+              _buildTextField(controller: _nameController, label: 'Name'),
+              _buildTextField(
+                  controller: _phoneNumberController, label: 'Phone Number'),
+              _buildTextField(
+                  controller: _storeNameController, label: 'Store Name'),
+              SizedBox(height: 10),
               TextButton(
                 onPressed: _pickStoreLocation,
-                child: Text('Select Store Location'),
+                child: Text('Select Store Location',
+                    style: TextStyle(color: Colors.blue.shade700)),
               ),
-              Text(_storeLocation == null
-                  ? 'No location selected'
-                  : 'Location selected: (${_storeLocation!.latitude}, ${_storeLocation!.longitude})'),
-              SizedBox(height: 20),
+              Text(
+                _storeLocation == null
+                    ? 'No location selected'
+                    : 'Location selected: $_storeLocation',
+                style: TextStyle(color: Colors.grey.shade600),
+              ),
+              SizedBox(height: 15),
               TextButton(
                 onPressed: _selectStoreType,
-                child: Text('Select Store Type'),
+                child: Text('Select Store Type',
+                    style: TextStyle(color: Colors.blue.shade700)),
               ),
-              Text(_storeTypes.isEmpty
-                  ? 'No store type selected'
-                  : _storeTypes.join(', ')),
-              SizedBox(height: 20),
+              Text(
+                _storeTypes.isEmpty
+                    ? 'No store type selected'
+                    : _storeTypes.join(', '),
+                style: TextStyle(color: Colors.grey.shade600),
+              ),
+              SizedBox(height: 15),
               TextButton(
                 onPressed: _selectStoreHours,
-                child: Text('Set Store Hours'),
+                child: Text('Set Store Hours',
+                    style: TextStyle(color: Colors.blue.shade700)),
               ),
-              Text(_storeHours.isEmpty
-                  ? 'No hours set'
-                  : 'Store hours set for some days'),
-              TextField(
-                controller: _websiteController,
-                decoration: InputDecoration(labelText: 'Website (optional)'),
+              Text(
+                _storeHours.isEmpty
+                    ? 'No hours set'
+                    : 'Store hours set for some days',
+                style: TextStyle(color: Colors.grey.shade600),
               ),
-              TextField(
-                controller: _storeDescriptionController,
-                decoration:
-                    InputDecoration(labelText: 'Store Description (optional)'),
-              ),
-              SizedBox(height: 20),
+              SizedBox(height: 15),
+              _buildTextField(
+                  controller: _websiteController, label: 'Website (optional)'),
+              _buildTextField(
+                  controller: _storeDescriptionController,
+                  label: 'Store Description (optional)'),
+              SizedBox(height: 30),
               ElevatedButton(
                 onPressed: _saveStoreOwnerDetails,
-                child: Text('Save Details'),
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                  backgroundColor: Colors.blue.shade600,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                child: Text('Save Details',
+                    style: TextStyle(fontSize: 16, color: Colors.white)),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField(
+      {required TextEditingController controller, required String label}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 15),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.blue.shade50,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            labelText: label,
+            border: InputBorder.none,
+            contentPadding: EdgeInsets.symmetric(horizontal: 15, vertical: 12),
           ),
         ),
       ),

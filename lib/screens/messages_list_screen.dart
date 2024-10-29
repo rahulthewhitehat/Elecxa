@@ -15,6 +15,7 @@ class MessagesListScreen extends StatelessWidget {
         title: Text('Messages'),
         backgroundColor: Colors.blue,
       ),
+      backgroundColor: Colors.white,
       body: StreamBuilder(
         stream: FirebaseFirestore.instance
             .collection('chats')
@@ -30,12 +31,16 @@ class MessagesListScreen extends StatelessWidget {
 
           if (chats.isEmpty) {
             return Center(
-              child: Text('No chats available.'),
+              child: Text(
+                'No chats available.',
+                style: TextStyle(fontSize: 16, color: Colors.grey),
+              ),
             );
           }
 
           return ListView.builder(
             itemCount: chats.length,
+            padding: EdgeInsets.all(10.0),
             itemBuilder: (context, index) {
               var chat = chats[index];
               var lastMessage = chat['lastMessage'] ?? 'No messages yet';
@@ -43,27 +48,11 @@ class MessagesListScreen extends StatelessWidget {
                   ? (chat['timestamp'] as Timestamp).toDate()
                   : null;
 
-              String otherParticipantName = '';
+              String otherParticipantName = chat['storeId'] == userId
+                  ? chat['customerName'] ?? 'Unknown Customer'
+                  : chat['storeName'] ?? 'Unknown Store';
 
-              // Determine if the current user is the customer or the store owner
-              if (chat['storeId'] == userId) {
-                // Store owner is logged in, display the customer's name
-                otherParticipantName =
-                    chat['customerName'] ?? 'Unknown Customer';
-              } else {
-                // Customer is logged in, display the store's name
-                otherParticipantName = chat['storeName'] ?? 'Unknown Store';
-              }
-
-              return ListTile(
-                title: Text('Chat with $otherParticipantName'),
-                subtitle: Text(lastMessage),
-                trailing: timestamp != null
-                    ? Text(
-                        '${timestamp.hour}:${timestamp.minute}',
-                        style: TextStyle(color: Colors.grey),
-                      )
-                    : null,
+              return GestureDetector(
                 onTap: () {
                   Navigator.push(
                     context,
@@ -77,6 +66,42 @@ class MessagesListScreen extends StatelessWidget {
                     ),
                   );
                 },
+                child: Card(
+                  color: Colors.blue.shade50,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  margin: EdgeInsets.symmetric(vertical: 8),
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: Colors.blue.shade600,
+                      child: Icon(Icons.chat, color: Colors.white),
+                    ),
+                    title: Text(
+                      otherParticipantName,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue.shade700,
+                      ),
+                    ),
+                    subtitle: Text(
+                      lastMessage,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color: Colors.grey.shade700),
+                    ),
+                    trailing: timestamp != null
+                        ? Text(
+                            '${timestamp.hour}:${timestamp.minute}',
+                            style: TextStyle(
+                              color: Colors.grey.shade500,
+                              fontSize: 12,
+                            ),
+                          )
+                        : null,
+                  ),
+                ),
               );
             },
           );

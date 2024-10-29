@@ -22,7 +22,6 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
           .doc(productId)
           .delete();
 
-      // Show success message for deletion
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Product deleted successfully!')),
       );
@@ -56,39 +55,71 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
                 }
 
                 if (snapshot.hasData && snapshot.data!.docs.isEmpty) {
-                  return Center(child: Text('No products added yet'));
+                  return Center(
+                    child: Text(
+                      'No products added yet',
+                      style: TextStyle(fontSize: 16, color: Colors.grey),
+                    ),
+                  );
                 }
 
                 final products = snapshot.data!.docs;
 
                 return ListView.builder(
+                  padding: EdgeInsets.all(10),
                   itemCount: products.length,
                   itemBuilder: (context, index) {
                     final product =
                         products[index].data() as Map<String, dynamic>;
-                    return ListTile(
-                      title: Text(product['name'] ?? ''),
-                      subtitle: Text(
-                          '₹${product['price'] ?? ''}'), // Updated to use the Indian rupee symbol
-                      trailing: IconButton(
-                        icon: Icon(Icons.delete),
-                        onPressed: () => _deleteProduct(products[index].id),
+
+                    // Use the first available image or a default icon
+                    final imageUrl = product['imageUrl1'] ?? '';
+
+                    return Card(
+                      margin: EdgeInsets.symmetric(vertical: 8),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      onTap: () {
-                        // Open ProductDetailsDialog for editing
-                        showDialog(
-                          context: context,
-                          builder: (context) => ProductDetailsDialog(
-                            product: {
-                              ...product,
-                              'id': products[index].id,
-                            },
-                            onSave: () {
-                              setState(() {}); // Refresh the list
-                            },
-                          ),
-                        );
-                      },
+                      elevation: 2,
+                      child: ListTile(
+                        leading: imageUrl.isNotEmpty
+                            ? Image.network(
+                                imageUrl,
+                                width: 50,
+                                height: 50,
+                                fit: BoxFit.cover,
+                              )
+                            : CircleAvatar(
+                                backgroundColor: Colors.blue.shade50,
+                                child: Icon(Icons.shopping_bag,
+                                    color: Colors.blue.shade700),
+                              ),
+                        title: Text(
+                          product['name'] ?? 'Unnamed Product',
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(
+                          '₹${product['price'] ?? ''}',
+                          style: TextStyle(
+                              fontSize: 16, color: Colors.blue.shade600),
+                        ),
+                        trailing: IconButton(
+                          icon: Icon(Icons.delete, color: Colors.red),
+                          onPressed: () => _deleteProduct(products[index].id),
+                        ),
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => ProductDetailsDialog(
+                              product: {...product, 'id': products[index].id},
+                              onSave: () {
+                                setState(() {}); // Refresh the list
+                              },
+                            ),
+                          );
+                        },
+                      ),
                     );
                   },
                 );
@@ -96,7 +127,6 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Open ProductDetailsDialog for adding a new product
           showDialog(
             context: context,
             builder: (context) => ProductDetailsDialog(
