@@ -16,6 +16,8 @@ import 'screens/settings_screen.dart';
 import 'screens/profile_view_edit_customer.dart'; // Import customer profile screen
 import 'screens/profile_view_edit_store_owner.dart'; // Import store owner profile screen
 import 'screens/about_screen.dart';
+import 'screens/customer_requests_screen.dart';
+import 'screens/store_owner_notifications_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,6 +50,8 @@ class ElecxaApp extends StatelessWidget {
         '/browseStores': (context) => BrowseStoresScreen(),
         '/browseProducts': (context) => BrowseProductsScreen(),
         '/about': (context) => AboutScreen(),
+        '/customerRequests': (context) => CustomerRequestsScreen(),
+        '/storeOwnerRequests': (context) => NotificationsScreen(),
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/messages') {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'showStoreDetailsScreen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ProductDetailScreen extends StatelessWidget {
   final Map<String, dynamic> product;
@@ -35,6 +36,117 @@ class ProductDetailScreen extends StatelessWidget {
         SnackBar(content: Text('Store ID not available.')),
       );
     }
+  }
+
+  void _requestProduct(BuildContext context) async {
+    String urgency = 'Immediately';
+
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text('Request Product'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Select urgency level'),
+              DropdownButton<String>(
+                value: urgency,
+                items: ['Immediately', 'Within 3 days', 'Within a week']
+                    .map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  urgency = newValue ?? urgency;
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () => Navigator.pop(dialogContext),
+            ),
+            TextButton(
+              child: Text('Send Request'),
+              onPressed: () async {
+                Navigator.pop(dialogContext); // Close the dialog first
+                final currentUser = FirebaseAuth.instance.currentUser;
+
+                if (currentUser != null) {
+                  try {
+                    final customerDoc = await FirebaseFirestore.instance
+                        .collection('customers')
+                        .doc(currentUser.uid)
+                        .get();
+                    String customerName =
+                        customerDoc['name'] ?? 'Unknown Customer';
+
+                    final requestId = FirebaseFirestore.instance
+                        .collection('requests')
+                        .doc()
+                        .id;
+
+                    // Add the request to the store owner's notifications collection
+                    await FirebaseFirestore.instance
+                        .collection('storeOwners')
+                        .doc(product['storeId'])
+                        .collection('notifications')
+                        .doc(requestId)
+                        .set({
+                      'productName': product['name'],
+                      'customerName': customerName,
+                      'urgency': urgency,
+                      'timestamp': FieldValue.serverTimestamp(),
+                      'status': 'Pending',
+                      'customerId': currentUser.uid,
+                    });
+
+                    // Add the request to the customer's requests collection
+                    await FirebaseFirestore.instance
+                        .collection('customers')
+                        .doc(currentUser.uid)
+                        .collection('requests')
+                        .doc(requestId)
+                        .set({
+                      'productName': product['name'],
+                      'storeId': product['storeId'],
+                      'urgency': urgency,
+                      'timestamp': FieldValue.serverTimestamp(),
+                      'status': 'Pending',
+                    });
+
+                    // Use a root-level context to show the SnackBar after dialog is closed
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Product "${product['name']}" requested successfully!',
+                        ),
+                        duration: Duration(seconds: 3),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  } catch (e) {
+                    // Show an error SnackBar in case of failure
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Failed to send request. Please try again later.',
+                        ),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -111,6 +223,20 @@ class ProductDetailScreen extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     padding: EdgeInsets.symmetric(horizontal: 30, vertical: 12),
                     backgroundColor: Colors.blue.shade600,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ),
+              SizedBox(height: 10),
+              // Request Product button
+              Center(
+                child: ElevatedButton.icon(
+                  onPressed: () => _requestProduct(context),
+                  icon: Icon(Icons.request_page),
+                  label: Text('Request Product'),
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+                    backgroundColor: Colors.orange.shade600,
                     foregroundColor: Colors.white,
                   ),
                 ),

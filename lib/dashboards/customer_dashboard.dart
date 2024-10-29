@@ -124,6 +124,14 @@ class CustomerDashboard extends StatelessWidget {
                           Navigator.pushNamed(context, '/messages');
                         },
                       ),
+                      _buildDashboardButton(
+                        context,
+                        icon: Icons.notifications,
+                        label: 'Requests',
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/customerRequests');
+                        },
+                      ),
                     ],
                   ),
                 ),

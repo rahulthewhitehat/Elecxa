@@ -132,6 +132,14 @@ class _StoreOwnerDashboardState extends State<StoreOwnerDashboard> {
                             Navigator.pushNamed(context, '/messages');
                           },
                         ),
+                        _buildDashboardButton(
+                          context,
+                          icon: Icons.notifications,
+                          label: 'Requests',
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/storeOwnerRequests');
+                          },
+                        ),
                       ],
                     ),
                   ),
