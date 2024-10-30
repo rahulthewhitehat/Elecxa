@@ -107,14 +107,20 @@ class _StoreOwnerDetailsScreenState extends State<StoreOwnerDetailsScreen> {
         // Ensure all the fields are not null before saving
         if (_storeNameController.text.trim().isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Store name is required')),
+            SnackBar(
+              content: Text('Store name is required'),
+              backgroundColor: Colors.red,
+            ),
           );
           return;
         }
 
         if (_storeLocation == null) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Please select store location')),
+            SnackBar(
+              content: Text('Please select store location'),
+              backgroundColor: Colors.red,
+            ),
           );
           return;
         }
@@ -140,7 +146,9 @@ class _StoreOwnerDetailsScreenState extends State<StoreOwnerDetailsScreen> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Account creation successful! Details saved.')),
+            content: Text('Account creation successful! Details saved.'),
+            backgroundColor: Colors.green,
+          ),
         );
 
         Navigator.pushReplacementNamed(context, '/storeOwnerDashboard');
@@ -148,7 +156,10 @@ class _StoreOwnerDetailsScreenState extends State<StoreOwnerDetailsScreen> {
     } catch (e) {
       print('Error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to save details. Please try again.')),
+        SnackBar(
+          content: Text('Failed to save details. Please try again.'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }

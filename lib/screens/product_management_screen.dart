@@ -23,7 +23,10 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
           .delete();
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Product deleted successfully!')),
+        SnackBar(
+          content: Text('Product deleted successfully!'),
+          backgroundColor: Colors.green,
+        ),
       );
     }
   }

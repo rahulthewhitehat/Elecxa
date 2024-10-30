@@ -41,7 +41,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         // Log the error in case of failure
         print('Error updating request status in both collections: $e');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update request status.')),
+          SnackBar(
+            content: Text('Failed to update request status.'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }

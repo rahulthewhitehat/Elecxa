@@ -36,7 +36,10 @@ class _StoreLocationPickerScreenState extends State<StoreLocationPickerScreen> {
       _getCurrentLocation();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Location permission is required')),
+        SnackBar(
+          content: Text('Location permission is required'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -57,7 +60,10 @@ class _StoreLocationPickerScreenState extends State<StoreLocationPickerScreen> {
       Navigator.pop(context, _selectedLocation);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please select a location.')),
+        SnackBar(
+          content: Text('Please select a location.'),
+          backgroundColor: Colors.blue.shade700,
+        ),
       );
     }
   }
@@ -79,12 +85,18 @@ class _StoreLocationPickerScreenState extends State<StoreLocationPickerScreen> {
           });
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Location not found')),
+            SnackBar(
+              content: Text('Location not found'),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -105,7 +117,10 @@ class _StoreLocationPickerScreenState extends State<StoreLocationPickerScreen> {
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not get current location: $e')),
+        SnackBar(
+          content: Text('Could not get current location: $e'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }

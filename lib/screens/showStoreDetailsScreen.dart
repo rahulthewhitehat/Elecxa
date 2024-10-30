@@ -38,7 +38,10 @@ class ShowStoreDetailsScreen extends StatelessWidget {
     // Ensure that storeId is valid and not empty
     if (storeId == null || storeId.isEmpty || storeId == 'Unknown Store ID') {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: Invalid store ID. Please try again.')),
+        SnackBar(
+          content: Text('Error: Invalid store ID. Please try again.'),
+          backgroundColor: Colors.red,
+        ),
       );
       return;
     }

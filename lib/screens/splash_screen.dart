@@ -127,7 +127,7 @@ class _SplashScreenState extends State<SplashScreen>
               ),
               SizedBox(height: 8),
               Text(
-                'Local Electronics, Simplified!',
+                'Find Local Store\'s Goods, Simplified!',
                 style: TextStyle(
                   fontSize: 18,
                   color: Colors.blue.shade600,

@@ -8,7 +8,7 @@
     <uses-permission android:name="android.permission.CALL_PHONE"/>
 
     <application
-        android:label="elecxa"
+        android:label="Elecxa"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         tools:targetApi="tiramisu"> <!-- Add this line -->

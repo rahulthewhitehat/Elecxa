@@ -56,7 +56,9 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Account creation successful! Details saved.')),
+            content: Text('Account creation successful! Details saved.'),
+            backgroundColor: Colors.green,
+          ),
         );
 
         Navigator.pushReplacementNamed(context, '/customerDashboard');
@@ -64,7 +66,10 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
     } catch (e) {
       print('Error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to save details. Please try again.')),
+        SnackBar(
+          content: Text('Failed to save details. Please try again.'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }

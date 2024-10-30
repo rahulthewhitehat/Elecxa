@@ -39,7 +39,10 @@ class _LoginScreenState extends State<LoginScreen> {
         errorMessage = 'This user has been disabled.';
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage)),
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -63,7 +66,10 @@ class _LoginScreenState extends State<LoginScreen> {
       await _checkRoleConsistency(userCredential.user);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to log in with Google.')),
+        SnackBar(
+          content: Text('Failed to log in with Google.'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -82,22 +88,28 @@ class _LoginScreenState extends State<LoginScreen> {
       if (widget.role == 'customer' && storeOwnerDoc.exists) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content:
-                  Text('This email is already registered as a store owner.')),
+            content: Text('This email is already registered as a store owner.'),
+            backgroundColor: Colors.red,
+          ),
         );
         _auth.signOut();
         return;
       } else if (widget.role == 'storeOwner' && customerDoc.exists) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('This email is already registered as a customer.')),
+            content: Text('This email is already registered as a customer.'),
+            backgroundColor: Colors.red,
+          ),
         );
         _auth.signOut();
         return;
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Logged in successfully!')),
+        SnackBar(
+          content: Text('Logged in successfully!'),
+          backgroundColor: Colors.green,
+        ),
       );
       _navigateToDetailsOrDashboard(user);
     }
@@ -120,11 +132,16 @@ class _LoginScreenState extends State<LoginScreen> {
                     email: _emailController.text.trim());
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Password reset email sent!')),
+                  SnackBar(
+                      content: Text('Password reset email sent!'),
+                      backgroundColor: Colors.green),
                 );
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Failed to send reset email.')),
+                  SnackBar(
+                    content: Text('Failed to send reset email.'),
+                    backgroundColor: Colors.red,
+                  ),
                 );
               }
             },

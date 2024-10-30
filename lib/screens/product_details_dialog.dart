@@ -95,7 +95,10 @@ class _ProductDetailsDialogState extends State<ProductDetailsDialog> {
 
       // Show success message for update
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Product updated successfully!')),
+        SnackBar(
+          content: Text('Product updated successfully!'),
+          backgroundColor: Colors.green,
+        ),
       );
     } else {
       await _firestore
@@ -106,7 +109,10 @@ class _ProductDetailsDialogState extends State<ProductDetailsDialog> {
 
       // Show success message for add
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Product added successfully!')),
+        SnackBar(
+          content: Text('Product added successfully!'),
+          backgroundColor: Colors.green,
+        ),
       );
     }
 

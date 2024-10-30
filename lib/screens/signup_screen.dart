@@ -23,7 +23,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
     if (_passwordController.text.trim() !=
         _confirmPasswordController.text.trim()) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Passwords do not match')),
+        SnackBar(
+          content: Text('Passwords do not match'),
+          backgroundColor: Colors.red,
+        ),
       );
       return;
     }
@@ -47,7 +50,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
         }
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage)),
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -67,22 +73,28 @@ class _SignUpScreenState extends State<SignUpScreen> {
       if (widget.role == 'customer' && storeOwnerDoc.exists) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content:
-                  Text('This email is already registered as a store owner.')),
+            content: Text('This email is already registered as a store owner.'),
+            backgroundColor: Colors.red,
+          ),
         );
         _auth.signOut();
         return;
       } else if (widget.role == 'storeOwner' && customerDoc.exists) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('This email is already registered as a customer.')),
+            content: Text('This email is already registered as a customer.'),
+            backgroundColor: Colors.red,
+          ),
         );
         _auth.signOut();
         return;
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Signed up successfully!')),
+        SnackBar(
+          content: Text('Signed up successfully!'),
+          backgroundColor: Colors.green,
+        ),
       );
       _navigateToDetailsOrDashboard(user);
     }

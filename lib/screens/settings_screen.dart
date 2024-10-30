@@ -78,7 +78,10 @@ class SettingsScreen extends StatelessWidget {
                       Navigator.pushNamed(context, '/storeOwnerProfile');
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('User role is undefined.')),
+                        SnackBar(
+                          content: Text('User role is undefined.'),
+                          backgroundColor: Colors.red,
+                        ),
                       );
                     }
                   }

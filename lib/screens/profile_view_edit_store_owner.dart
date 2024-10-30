@@ -376,7 +376,10 @@ class _StoreOwnerProfileViewEditScreenState
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Profile updated successfully!')),
+          SnackBar(
+            content: Text('Profile updated successfully!'),
+            backgroundColor: Colors.green,
+          ),
         );
 
         Navigator.pop(context);
@@ -384,7 +387,10 @@ class _StoreOwnerProfileViewEditScreenState
     } catch (e) {
       print('Error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update profile. Please try again.')),
+        SnackBar(
+          content: Text('Failed to update profile. Please try again.'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
