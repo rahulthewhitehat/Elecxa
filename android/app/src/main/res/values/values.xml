@@ -1,9 +1,0 @@
-<resources>
-    <string name="default_web_client_id">1055807655237-q8a1ta0s14pu9isrkaoc6kkqbtt6tieq.apps.googleusercontent.com</string>
-    <string name="firebase_database_url">https://elecxa-8e427.firebaseio.com</string>
-    <string name="project_id">elecxa-8e427</string>
-    <string name="google_api_key">AIzaSyCOPrNMzQn5yGc2ov3kIfB0SYOIvohf7DA</string>
-    <string name="google_app_id">1:1055807655237:android:8e6b1f57f3485240ed822c</string>
-    <string name="google_storage_bucket">elecxa-8e427.appspot.com</string>
-    <string name="gcm_defaultSenderId">1055807655237</string>
-</resources>
